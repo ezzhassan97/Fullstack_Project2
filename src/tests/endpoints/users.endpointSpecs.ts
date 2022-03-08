@@ -10,7 +10,7 @@ let token = "";
 
 const userM = new userModel();
 
-describe("Testing Logic", () => {
+describe(" Users API Endpoint ", () => {
 	const user = {
 		username: "testname",
 		firstname: "firsttest",
@@ -21,6 +21,7 @@ describe("Testing Logic", () => {
 	beforeAll(async () => {
 		const createdUser = await userM.create(user);
 		user.id = createdUser.id;
+		console.log(user.id);
 	});
 
 	afterAll(async () => {
@@ -29,42 +30,69 @@ describe("Testing Logic", () => {
 		await conn.query(sql);
 		conn.release();
 	});
+	it("User Authenticate Endpoint", async () => {
+		const res = await request
+			.post("/api/users/authenticate")
+			.set("content-type", "application/json")
+			.send({ username: "testname", password: "testpassword" });
+		expect(res.status).toBe(200);
 
-	it("User Authenticate Method Function Test", async () => {
-		const authUser = await userM.authenticateUser(
-			user.username,
-			user.password as string
-		);
-		expect(authUser?.username).toBe(user.username);
-		expect(authUser?.firstname).toBe(user.firstname);
-		expect(authUser?.lastname).toBe(user.lastname);
+		const username = res.body.username;
+		const firstname = res.body.firstname;
+		const lastname = res.body.lastname;
+		token = res.body.token;
+
+		expect(username).toEqual(user.username);
+		expect(firstname).toEqual(user.firstname);
+		expect(lastname).toEqual(user.lastname);
 	});
 
-	it("User Create Method Function Test", async () => {
-		const createdUser = await userM.create({
-			username: "testname2",
-			firstname: "firsttest2",
-			lastname: "lasttest2",
-			password: "testpassword",
-		} as User);
+	it("User Create Endpoint", async () => {
+		const res = await request
+			.post("/api/users")
+			.set("content-type", "application/json")
+			.set("Authorization", `Bearer${token}`)
+			.send({
+				username: "testname2",
+				firstname: "firsttest",
+				lastname: "lasttest",
+				password: "testpassword2",
+			} as User);
+		expect(res.status).toBe(200);
 
-		expect(createdUser).toEqual({
-			id: createdUser.id,
-			username: "testname2",
-			firstname: "firsttest2",
-			lastname: "lasttest2",
-		} as User);
+		const username = res.body.username;
+		const firstname = res.body.firstname;
+		const lastname = res.body.lastname;
+
+		expect(username).toEqual("testname2");
+		expect(firstname).toEqual("firsttest");
+		expect(lastname).toEqual("lasttest");
 	});
 
-	it("User Index Method Function Test", async () => {
-		const allUsers = await userM.index();
-		expect(allUsers.length).toBeGreaterThan(1);
+	it("User Show Endpoint", async () => {
+		const res = await request
+			.get(`/api/users/${user.id}`)
+			.set("content-type", "application/json")
+			.set("Authorization", `Bearer ${token}`);
+		expect(res.status).toBe(200);
+
+		const id = res.body.id;
+		const username = res.body.username;
+		const firstname = res.body.firstname;
+		const lastname = res.body.lastname;
+		expect(id).toBe(user.id);
+		expect(username).toBe("testname");
+		expect(firstname).toBe("firsttest");
+		expect(lastname).toBe("lasttest");
 	});
 
-	it("User Show Method Function Test", async () => {
-		const oneUser = await userM.show(user.id as unknown as number);
-		expect(oneUser?.username).toBe(user.username);
-		expect(oneUser?.firstname).toBe(user.firstname);
-		expect(oneUser?.lastname).toBe(user.lastname);
+	it("User Index Endpoint", async () => {
+		const res = await request
+			.get("/api/users")
+			.set("content-type", "application/json")
+			.set("Authorization", `Bearer ${token}`);
+		expect(res.status).toBe(200);
+		const allUsers = res.body;
+		expect(allUsers.length).toEqual(2);
 	});
 });
