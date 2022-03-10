@@ -1,12 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import Error from "../interfaces/error.interface";
 import config from "./config";
-
-const handleError = (next: NextFunction) => {
-	const err: Error = new Error("Login failed");
-	next(err);
-};
 
 const authenticateMiddleware = async (
 	req: Request,

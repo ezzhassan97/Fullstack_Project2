@@ -1,5 +1,4 @@
 import express, { Request, response, Response } from "express";
-import errorMiddleware from "./middleware/error.middleware";
 import morgan from "morgan";
 import helmet from "helmet";
 import cors from "cors";
