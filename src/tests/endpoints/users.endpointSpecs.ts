@@ -26,6 +26,8 @@ describe(" Users API Endpoint ", () => {
 
 	afterAll(async () => {
 		const conn = await db.connect();
+		const sql2 = "DELETE FROM orders;";
+		await conn.query(sql2);
 		const sql = "DELETE FROM users;";
 		await conn.query(sql);
 		conn.release();

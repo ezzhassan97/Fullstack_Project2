@@ -1,82 +1,65 @@
-// import userModel from "../models/user.model";
-// import User from "../types/user.type";
-// import db from "../database/database";
+import orderModel from "../models/order.model";
+import userModel from "../models/user.model";
+import Order from "../types/order.type";
+import User from "../types/user.type";
+import db from "../database/database";
 
-// const userM = new userModel();
+const userM = new userModel();
+const orderM = new orderModel();
 
-// describe("Testing User Model Methods ", () => {
-// 	describe("Testing Model Methods to Be defined", () => {
-// 		it("User Authenticate Method to be defined", () => {
-// 			expect(userM.authenticateUser).toBeDefined();
-// 		});
+describe("Testing order Model Methods ", () => {
+	describe("Testing Model Methods to Be defined", () => {
+		it("order Create Method to be defined", () => {
+			expect(orderM.create).toBeDefined();
+		});
+		it("order Index Method to be defined", () => {
+			expect(orderM.index).toBeDefined();
+		});
+		it("order Show Method to be defined", () => {
+			expect(orderM.show).toBeDefined();
+		});
+	});
+});
+describe("Testing Logic", () => {
+	const user = {
+		username: "testname",
+		firstname: "firsttest",
+		lastname: "lasttest",
+		password: "testpassword",
+	} as User;
 
-// 		it("User Create Method to be defined", () => {
-// 			expect(userM.create).toBeDefined();
-// 		});
-// 		it("User Index Method to be defined", () => {
-// 			expect(userM.index).toBeDefined();
-// 		});
-// 		it("User Show Method to be defined", () => {
-// 			expect(userM.show).toBeDefined();
-// 		});
-// 	});
+	const order = {} as Order;
 
-// 	describe("Testing Logic", () => {
-// 		const user = {
-// 			username: "testname",
-// 			firstname: "firsttest",
-// 			lastname: "lasttest",
-// 			password: "testpassword",
-// 		} as User;
+	beforeAll(async () => {
+		const createdUser = await userM.create(user);
 
-// 		beforeAll(async () => {
-// 			const createdUser = await userM.create(user);
-// 			user.id = createdUser.id;
-// 		});
+		user.id = createdUser.id;
+		order.user_id = createdUser.id as unknown as number;
+		const createdOrder = await orderM.create(order.user_id);
+	});
 
-// 		afterAll(async () => {
-// 			const conn = await db.connect();
-// 			const sql = "DELETE FROM users;";
-// 			await conn.query(sql);
-// 			conn.release();
-// 		});
+	afterAll(async () => {
+		const conn = await db.connect();
+		const sql2 = "DELETE FROM orders;";
+		await conn.query(sql2);
+		const sql1 = "DELETE FROM users;";
+		await conn.query(sql1);
 
-// 		it("User Authenticate Method Function Test", async () => {
-// 			const authUser = await userM.authenticateUser(
-// 				user.username,
-// 				user.password as string
-// 			);
-// 			expect(authUser?.username).toBe(user.username);
-// 			expect(authUser?.firstname).toBe(user.firstname);
-// 			expect(authUser?.lastname).toBe(user.lastname);
-// 		});
+		conn.release();
+	});
 
-// 		it("User Create Method Function Test", async () => {
-// 			const createdUser = await userM.create({
-// 				username: "testname2",
-// 				firstname: "firsttest2",
-// 				lastname: "lasttest2",
-// 				password: "testpassword",
-// 			} as User);
+	it("order show order for one user Method Function Test", async () => {
+		const userOrder = await orderM.userOrders(order.user_id);
+		expect(userOrder.length).toEqual(1);
+	});
 
-// 			expect(createdUser).toEqual({
-// 				id: createdUser.id,
-// 				username: "testname2",
-// 				firstname: "firsttest2",
-// 				lastname: "lasttest2",
-// 			} as User);
-// 		});
+	it("order Index Method Function Test", async () => {
+		const allOrders = await orderM.index();
+		expect(allOrders.length).toBeGreaterThan(0);
+	});
 
-// 		it("User Index Method Function Test", async () => {
-// 			const allUsers = await userM.index();
-// 			expect(allUsers.length).toBeGreaterThan(1);
-// 		});
-
-// 		it("User Show Method Function Test", async () => {
-// 			const oneUser = await userM.show(user.id as unknown as number);
-// 			expect(oneUser?.username).toBe(user.username);
-// 			expect(oneUser?.firstname).toBe(user.firstname);
-// 			expect(oneUser?.lastname).toBe(user.lastname);
-// 		});
-// 	});
-// });
+	it("order Show one Method Function Test", async () => {
+		const oneOrder = await orderM.show(order.id as unknown as number);
+		expect(oneOrder?.id).toBe(order.id);
+	});
+});

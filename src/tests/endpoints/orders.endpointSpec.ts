@@ -4,6 +4,7 @@
 
 // import User from "../../types/user.type";
 // import db from "../../database/database";
+// import Order from "../../types/order.type";
 
 // const request = supertest(app);
 // let token = "";
@@ -49,24 +50,19 @@
 
 // 	it("User Create Endpoint", async () => {
 // 		const res = await request
-// 			.post("/api/users")
+// 			.post("/api/orders")
 // 			.set("content-type", "application/json")
-// 			.set("Authorization", `Bearer${token}`)
+
 // 			.send({
-// 				username: "testname2",
-// 				firstname: "firsttest",
-// 				lastname: "lasttest",
-// 				password: "testpassword2",
-// 			} as User);
+// 				user_id: user.id,
+// 			} as Order);
 // 		expect(res.status).toBe(200);
 
-// 		const username = res.body.username;
-// 		const firstname = res.body.firstname;
-// 		const lastname = res.body.lastname;
+// 		const id = res.body.id;
+// 		const user_id = res.body.user_id;
 
 // 		expect(username).toEqual("testname2");
 // 		expect(firstname).toEqual("firsttest");
-// 		expect(lastname).toEqual("lasttest");
 // 	});
 
 // 	it("User Show Endpoint", async () => {
