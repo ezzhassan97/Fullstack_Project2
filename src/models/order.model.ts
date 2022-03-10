@@ -1,95 +1,115 @@
 import db from "../database/database";
-import User from "../types/user.type";
-import bcrypt from "bcrypt";
-import config from "../middleware/config";
+import Order from "../types/order.type";
+import orderProduct from "../types/order.products.type";
 
-const hashPassword = (password: string) => {
-	const pepper = config.pepper;
-	const saltRounds = parseInt(config.saltRounds as string, 10);
-	return bcrypt.hashSync(`${password}${pepper}`, saltRounds);
-};
+class orderModel {
+	// Create order function
 
-class userModel {
-	// Create user function
-
-	async create(u: User): Promise<User> {
+	async create(user_id: number): Promise<Order> {
 		try {
 			const conn = await db.connect();
-			const sql =
-				"INSERT INTO users (username,firstname,lastname, password) VALUES($1,$2,$3,$4) RETURNING id,username,firstname,lastname";
-			const result = await conn.query(sql, [
-				u.username,
-				u.firstname,
-				u.lastname,
-				hashPassword(u.password),
-			]);
+			const sql = "INSERT INTO orders (user_id) VALUES($1) RETURNING *";
+			const result = await conn.query(sql, [user_id]);
 
-			const user = result.rows[0];
+			const order = result.rows[0];
 			conn.release();
-			return user;
+			return order;
 		} catch (err) {
-			throw new Error(`Could not add new user ${u.username}. Error: ${err}`);
+			throw new Error(
+				`Could not add new order for user ${user_id}. Error: ${err}`
+			);
 		}
 	}
 
-	// Index user function
-	async index(): Promise<User[]> {
+	// Index order function
+	async index(): Promise<Order[]> {
 		try {
 			const conn = await db.connect();
-			const sql = "SELECT * from users";
+			const sql = "SELECT * from orders";
 			const result = await conn.query(sql);
 
-			const users = result.rows;
+			const orders = result.rows;
 			conn.release();
-			return users;
+			return orders;
 		} catch (err) {
-			throw new Error(`Could not show all users. Error: ${err}`);
+			throw new Error(`Could not show all orders. Error: ${err}`);
 		}
 	}
-	// Show user function
+	// Show order function
 
-	async show(id: number): Promise<User> {
+	async show(id: number): Promise<Order> {
 		try {
 			const conn = await db.connect();
-			const sql = "SELECT * from users where id=($1)";
+			const sql = "SELECT * from orders where id=($1)";
 			const result = await conn.query(sql, [id]);
 
-			const user = result.rows[0];
+			const order = result.rows[0];
 			conn.release();
-			return user;
+			return order;
 		} catch (err) {
-			throw new Error(`Could not show all users. Error: ${err}`);
+			throw new Error(`Could not show order with ID ${id}. Error: ${err}`);
 		}
 	}
 
-	async authenticateUser(
-		username: string,
-		password: string
-	): Promise<User | null> {
+	async userOrders(user_id: number): Promise<Order[]> {
 		try {
 			const conn = await db.connect();
-			const sql = "SELECT password from users where username=($1)";
-			const result = await conn.query(sql, [username]);
-			if (result.rows.length) {
-				const { password: hashedPassword } = result.rows[0];
-				const isPasswordValid = bcrypt.compareSync(
-					`${password}${config.pepper}`,
-					hashedPassword
-				);
-				if (isPasswordValid) {
-					const userInfoQuery =
-						"SELECT id, username, firstname, lastname from users where username=($1)";
-					const userInfo = await conn.query(userInfoQuery, [username]);
+			const sql = "SELECT * from orders where user_id=($1)";
+			const result = await conn.query(sql, [user_id]);
 
-					return userInfo.rows[0];
-				}
-			}
+			const orders = result.rows;
 			conn.release();
-			return null;
+			return orders;
 		} catch (err) {
-			throw new Error(`Could not find user. Error: ${err}`);
+			throw new Error(
+				`Could not show orders for user with ID ${user_id}. Error: ${err}`
+			);
+		}
+	}
+	async deleteOrder(id: number): Promise<Order> {
+		try {
+			const sql = "DELETE FROM orders WHERE id=($1) RETURNING *";
+			// @ts-ignore
+			const conn = await client.connect();
+
+			const result = await conn.query(sql, [id]);
+
+			const deletedOrder = result.rows[0];
+
+			conn.release();
+
+			return deletedOrder;
+		} catch (err) {
+			throw new Error(`Could not delete order ${id}. Error: ${err}`);
+		}
+	}
+
+	async addProduct(op: orderProduct): Promise<Order> {
+		// get order to see if it is open
+
+		try {
+			const sql =
+				"INSERT INTO order_products (order_id, product_id,quantity) VALUES($1, $2, $3) RETURNING *";
+			//@ts-ignore
+			const conn = await Client.connect();
+
+			const result = await conn.query(sql, [
+				op.order_id,
+				op.product_id,
+				op.quantity,
+			]);
+
+			const order = result.rows[0];
+
+			conn.release();
+
+			return order;
+		} catch (err) {
+			throw new Error(
+				`Could not add product  ${op.product_id} to order ${op.order_id}: ${err}`
+			);
 		}
 	}
 }
 
-export default userModel;
+export default orderModel;
